@@ -3,10 +3,14 @@ import torch
 import json
 import os
 
-intent_model_path = os.path.join("models", "intent_classifier")
+intent_model_path = "disilbert-base-uncased"
 
 tokenizer = DistilBertTokenizerFast.from_pretrained(intent_model_path)
-model = DistilBertForSequenceClassification.from_pretrained(intent_model_path)
+model = DistilBertForSequenceClassification.from_pretrained(
+    intent_model_path,
+    num_labels=len(label_map)
+)
+model.eval()
 
 with open("data/label_maps.json") as f:
     label_map = json.load(f)
