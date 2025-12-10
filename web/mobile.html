@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AstroAssist – Mobile Console</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #020617;
+      --accent: #22c55e;
+      --accent2: #3b82f6;
+      --danger: #ef4444;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text);
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 14px 12px 24px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    header p {
+      margin: 2px 0 0;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .chip {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
+    }
+
+    .chip-ok {
+      border-color: #22c55e;
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.15);
+    }
+
+    .banner {
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.45);
+      color: #bbf7d0;
+    }
+
+    .banner.emergency {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(248, 113, 113, 0.9);
+      color: #fecaca;
+      box-shadow: 0 0 22px rgba(239, 68, 68, 0.6);
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 55%),
+                  var(--card);
+      border-radius: 14px;
+      border: 1px solid rgba(15, 23, 42, 0.95);
+      padding: 12px 12px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 0.9rem;
+    }
+
+    .sensor-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    .sensor-row span:first-child {
+      color: var(--muted);
+    }
+
+    .bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.25s ease, background 0.25s ease;
+    }
+
+    .field-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .intent-pill {
+      display: inline-flex;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      border: 1px solid var(--border);
+    }
+
+    .intent-emergency {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(248, 113, 113, 0.8);
+      color: #fecaca;
+    }
+
+    .console-form {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .console-input {
+      flex: 1;
+      padding: 9px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text);
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .console-input::placeholder {
+      color: #6b7280;
+    }
+
+    .console-input:focus {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4);
+    }
+
+    .console-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 9px 16px;
+      font-size: 0.8rem;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.6);
+    }
+
+    .history {
+      margin-top: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+      font-size: 0.78rem;
+    }
+
+    .history-item {
+      padding: 6px 6px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .history-item .meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.7rem;
+      margin-top: 3px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div style="font-size: 1.6rem;">🚀</div>
+    <div>
+      <h1>AstroAssist Mobile Console</h1>
+      <p>Quick mission view + emergency alerts</p>
+    </div>
+  </header>
+
+  <div class="chip-row">
+    <span class="chip chip-ok" id="chipApi">API: Online</span>
+    <span class="chip" id="chipSensors">Sensors: Connecting…</span>
+  </div>
+
+  <div id="banner" class="banner">
+    ✅ System nominal. No emergencies detected.
+  </div>
+
+  <!-- Sensors -->
+  <section class="card">
+    <h2>📡 Live Sensors</h2>
+
+    <div class="sensor-row">
+      <span>Oxygen</span>
+      <span id="oxygenValue">-- %</span>
+    </div>
+    <div class="bar"><div id="oxygenBar" class="bar-fill"></div></div>
+
+    <div class="sensor-row">
+      <span>Pressure</span>
+      <span id="pressureValue">-- kPa</span>
+    </div>
+    <div class="bar"><div id="pressureBar" class="bar-fill"></div></div>
+
+    <div class="sensor-row">
+      <span>Power</span>
+      <span id="powerValue">-- %</span>
+    </div>
+    <div class="bar"><div id="powerBar" class="bar-fill"></div></div>
+  </section>
+
+  <!-- Last command / intent -->
+  <section class="card">
+    <h2>🎯 Intent Snapshot</h2>
+
+    <div class="field-label">Last Command</div>
+    <div id="lastCommand" style="font-size:0.8rem; word-break:break-word;">—</div>
+
+    <div class="field-label" style="margin-top:6px;">Displayed Intent</div>
+    <div id="lastIntentText" class="intent-pill">—</div>
+
+    <div class="field-label" style="margin-top:6px;">Emergency Reason</div>
+    <div id="emergencyReason" style="font-size:0.78rem; color:var(--muted);">None</div>
+  </section>
+
+  <!-- Command console -->
+  <section class="card">
+    <h2>🎙 Command Console</h2>
+    <form id="commandForm" class="console-form">
+      <input
+        id="commandInput"
+        class="console-input"
+        type="text"
+        placeholder="e.g. 'oxygen leak detected' or 'open the door'"
+        autocomplete="off"
+      />
+      <button type="submit" id="sendBtn" class="console-btn">Analyze</button>
+    </form>
+
+    <div class="field-label" style="margin-top:8px;">Command History</div>
+    <div id="historyList" class="history"></div>
+  </section>
+</div>
+
+<audio id="alarmSound">
+  <source src="/web/assets/alarm.mp3" type="audio/mpeg" />
+</audio>
+
+<script>
+  const API_URL = "/predict";
+
+  // DOM refs
+  const banner = document.getElementById("banner");
+  const chipSensors = document.getElementById("chipSensors");
+  const lastCommandEl = document.getElementById("lastCommand");
+  const lastIntentTextEl = document.getElementById("lastIntentText");
+  const emergencyReasonEl = document.getElementById("emergencyReason");
+  const historyList = document.getElementById("historyList");
+  const commandForm = document.getElementById("commandForm");
+  const commandInput = document.getElementById("commandInput");
+  const sendBtn = document.getElementById("sendBtn");
+  const alarmSound = document.getElementById("alarmSound");
+
+  // Sensors
+  const oxygenValEl = document.getElementById("oxygenValue");
+  const pressureValEl = document.getElementById("pressureValue");
+  const powerValEl = document.getElementById("powerValue");
+  const oxygenBar = document.getElementById("oxygenBar");
+  const pressureBar = document.getElementById("pressureBar");
+  const powerBar = document.getElementById("powerBar");
+
+  let oxygenLevel = 98;
+  let pressureLevel = 101;
+  let powerLevel = 85;
+
+  let userInteracted = false;
+  document.addEventListener("click", () => { userInteracted = true; }, { once: true });
+
+  function updateSensorBars(o2, p, pw) {
+    oxygenValEl.textContent = `${o2.toFixed(1)}%`;
+    pressureValEl.textContent = `${p.toFixed(1)} kPa`;
+    powerValEl.textContent = `${Math.round(pw)}%`;
+
+    oxygenBar.style.width = `${o2}%`;
+    pressureBar.style.width = `${(p / 110) * 100}%`;
+    powerBar.style.width = `${pw}%`;
+
+    if (o2 < 94 || p < 96) {
+      oxygenBar.style.background = "linear-gradient(90deg, #f97316, #ef4444)";
+      pressureBar.style.background = "linear-gradient(90deg, #f97316, #ef4444)";
+    } else {
+      oxygenBar.style.background = "linear-gradient(90deg, #22c55e, #3b82f6)";
+      pressureBar.style.background = "linear-gradient(90deg, #22c55e, #3b82f6)";
+    }
+  }
+
+  function getSensorEmergencyReason() {
+    if (oxygenLevel < 30) return "Oxygen critically low (< 30%)";
+    if (pressureLevel < 85) return "Cabin pressure in dangerous range";
+    if (powerLevel < 20) return "Power levels critically low";
+    return null;
+  }
+
+  function setEmergencyMode(reason, source) {
+    if (reason) {
+      banner.classList.add("emergency");
+      banner.textContent = `⚠️ EMERGENCY: ${reason}`;
+      lastIntentTextEl.classList.add("intent-emergency");
+      emergencyReasonEl.textContent =
+        source ? `${reason} (source: ${source})` : reason;
+
+      if (alarmSound && userInteracted) {
+        alarmSound.currentTime = 0;
+        alarmSound.play().catch(() => {});
+      }
+    } else {
+      banner.classList.remove("emergency");
+      banner.textContent = "✅ System nominal. No emergencies detected.";
+      lastIntentTextEl.classList.remove("intent-emergency");
+      emergencyReasonEl.textContent = "None";
+
+      if (alarmSound) alarmSound.pause();
+    }
+  }
+
+  function addHistoryItem(command, displayedIntent, emergencyReason) {
+    const item = document.createElement("div");
+    item.className = "history-item";
+
+    const text = document.createElement("div");
+    text.textContent = command;
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const left = document.createElement("span");
+    left.textContent = displayedIntent;
+    const right = document.createElement("span");
+    right.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    if (displayedIntent === "emergency") {
+      left.style.color = "#fecaca";
+    }
+
+    meta.appendChild(left);
+    meta.appendChild(right);
+
+    if (emergencyReason) {
+      const em = document.createElement("div");
+      em.style.color = "#fecaca";
+      em.style.fontSize = "0.7rem";
+      em.textContent = emergencyReason;
+      item.appendChild(em);
+    }
+
+    item.appendChild(text);
+    item.appendChild(meta);
+
+    historyList.prepend(item);
+  }
+
+  // WebSocket for sensors
+  function initSensorSocket() {
+    const protocol = location.protocol === "https:" ? "wss" : "ws";
+    const ws = new WebSocket(`${protocol}://${location.host}/ws/sensors`);
+
+    ws.onopen = () => {
+      chipSensors.textContent = "Sensors: Live";
+      chipSensors.classList.add("chip-ok");
+    };
+
+    ws.onclose = () => {
+      chipSensors.textContent = "Sensors: Disconnected";
+      chipSensors.classList.remove("chip-ok");
+      setTimeout(initSensorSocket, 2000);
+    };
+
+    ws.onerror = () => {
+      chipSensors.textContent = "Sensors: Error";
+      chipSensors.classList.remove("chip-ok");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (typeof data.oxygen === "number") oxygenLevel = data.oxygen;
+        if (typeof data.pressure === "number") pressureLevel = data.pressure;
+        if (typeof data.power === "number") powerLevel = data.power;
+        updateSensorBars(oxygenLevel, pressureLevel, powerLevel);
+      } catch (e) {
+        console.warn("Bad sensor payload:", e);
+      }
+    };
+  }
+
+  // Intent + command
+  commandForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const text = commandInput.value.trim();
+    if (!text) return;
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = "…";
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      const modelIntent = data.predicted_intent || "unknown";
+
+      const sensorReason = getSensorEmergencyReason();
+      let displayedIntent = modelIntent;
+      let emergencyReason = null;
+      let emergencySource = null;
+
+      if (modelIntent === "emergency") {
+        emergencyReason = "Model detected emergency command (intent)";
+        emergencySource = "model";
+      }
+
+      if (sensorReason) {
+        displayedIntent = "emergency";
+        emergencyReason = emergencyReason
+          ? `${emergencyReason} + ${sensorReason}`
+          : sensorReason;
+        emergencySource = "sensors";
+      }
+
+      lastCommandEl.textContent = text || "—";
+      lastIntentTextEl.textContent = displayedIntent.replace("_", " ") || "—";
+
+      if (displayedIntent === "emergency") {
+        lastIntentTextEl.classList.add("intent-emergency");
+      } else {
+        lastIntentTextEl.classList.remove("intent-emergency");
+      }
+
+      if (emergencyReason) {
+        setEmergencyMode(emergencyReason, emergencySource);
+      } else {
+        setEmergencyMode(null, null);
+      }
+
+      addHistoryItem(text, displayedIntent, emergencyReason);
+    } catch (err) {
+      console.error(err);
+      banner.classList.add("emergency");
+      banner.textContent = "⚠️ Error talking to API";
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "Analyze";
+      commandInput.value = "";
+      commandInput.focus();
+    }
+  });
+
+  // Init
+  updateSensorBars(oxygenLevel, pressureLevel, powerLevel);
+  initSensorSocket();
+</script>
+</body>
+</html>

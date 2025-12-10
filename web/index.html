@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AstroAssist Command Center</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Main styles -->
+  <link rel="stylesheet" href="/web/style.css" />
+
+  <!-- Chart.js for intent graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <!-- Our dashboard logic -->
+  <script src="/web/script.js" defer></script>
+</head>
+<body>
+<div class="page-root">
+
+  <!-- 🔴 EMERGENCY BANNER -->
+  <div id="emergencyBanner" class="emergency-banner hidden">
+    ⚠️ EMERGENCY CONDITION — CHECK LIFE SUPPORT & SENSORS ⚠️
+    <span id="emergencyBannerReason"></span>
+  </div>
+
+  <!-- 🔼 TOP BAR -->
+  <header class="top-bar">
+    <div>
+      <h1>🚀 AstroAssist Command Center</h1>
+      <p class="subtitle">Intent-Aware Space Console with Live Telemetry</p>
+    </div>
+    <div class="status-chips">
+      <span id="apiStatusChip" class="chip chip-ok">API: Online</span>
+      <span id="oxygenChip" class="chip">Oxygen: --%</span>
+      <span id="batteryChip" class="chip">Battery: --%</span>
+      <span id="systemChip" class="chip">System: Standby</span>
+    </div>
+  </header>
+
+  <!-- 🧱 MAIN GRID -->
+  <main class="grid-layout">
+
+    <!-- LEFT: Radar + Sensors -->
+    <section class="card big-card">
+      <h2>🛰 Radar & Live Telemetry</h2>
+
+      <div class="radar-row">
+        <!-- Radar -->
+        <canvas id="radarCanvas" width="260" height="260"></canvas>
+
+        <!-- Sensor panel -->
+        <div class="sensor-block">
+          <div class="sensor-row">
+            <span>Oxygen</span>
+            <span id="oxygenValue">--%</span>
+          </div>
+          <div class="sensor-bar">
+            <div id="oxygenBar" class="sensor-fill"></div>
+          </div>
+
+          <div class="sensor-row">
+            <span>Pressure</span>
+            <span id="pressureValue">-- kPa</span>
+          </div>
+          <div class="sensor-bar">
+            <div id="pressureBar" class="sensor-fill"></div>
+          </div>
+
+          <div class="sensor-row">
+            <span>Power</span>
+            <span id="powerValue">--%</span>
+          </div>
+          <div class="sensor-bar">
+            <div id="powerBar" class="sensor-fill"></div>
+          </div>
+
+          <div class="sensor-row">
+            <span>Temperature</span>
+            <span id="tempValue">-- °C</span>
+          </div>
+          <div class="sensor-bar">
+            <div id="tempBar" class="sensor-fill"></div>
+          </div>
+
+          <div class="sensor-row">
+            <span>Radiation</span>
+            <span id="radiationValue">-- mSv</span>
+          </div>
+          <div class="sensor-bar">
+            <div id="radiationBar" class="sensor-fill"></div>
+          </div>
+
+          <div class="sensor-row">
+            <span>CO₂</span>
+            <span id="co2Value">-- %</span>
+          </div>
+          <div class="sensor-bar">
+            <div id="co2Bar" class="sensor-fill"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Intent Stats -->
+    <section class="card">
+      <h2>📊 Intent Stats</h2>
+      <div class="chart-wrapper">
+        <canvas id="intentChart"></canvas>
+      </div>
+    </section>
+
+    <!-- BOTTOM: Command Console -->
+    <section class="card full-width">
+      <h2>🎙 Command Console</h2>
+
+      <form id="commandForm" class="command-form">
+        <input
+          id="commandInput"
+          type="text"
+          placeholder="Type a command… e.g. 'oxygen leak detected' or 'open the door'"
+          autocomplete="off"
+          required
+        />
+        <button id="sendBtn" type="submit">Analyze</button>
+      </form>
+
+      <div class="response-row">
+        <div>
+          <p class="label">Last Command</p>
+          <p id="lastCommand" class="mono">—</p>
+        </div>
+        <div>
+          <p class="label">Displayed Intent</p>
+          <p id="lastIntentText" class="intent-pill">—</p>
+        </div>
+        <div>
+          <p class="label">Emergency Reason</p>
+          <p id="emergencyReasonText" class="mono">—</p>
+        </div>
+      </div>
+
+      <h3>📜 Command History</h3>
+      <div id="historyList" class="history-list"></div>
+    </section>
+  </main>
+</div>
+
+<!-- 🔊 Local alarm sound -->
+<audio id="alarmSound">
+  <source src="/web/assets/alarm.mp3" type="audio/mpeg" />
+</audio>
+
+</body>
+</html>

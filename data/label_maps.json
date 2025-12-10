@@ -1,0 +1,7 @@
+{
+  "check_status": 0,
+  "control_door": 1,
+  "system_control": 2,
+  "ask_info": 3,
+  "emergency": 4
+}
