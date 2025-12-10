@@ -3,7 +3,7 @@ import torch
 import json
 import os
 
-intent_model_path = "disilbert-base-uncased"
+intent_model_path = "distilbert-base-uncased"
 
 tokenizer = DistilBertTokenizerFast.from_pretrained(intent_model_path)
 model = DistilBertForSequenceClassification.from_pretrained(
