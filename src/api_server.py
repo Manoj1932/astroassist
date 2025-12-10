@@ -96,3 +96,10 @@ async def sensor_stream(websocket: WebSocket):
 @app.get("/mobile", response_class=HTMLResponse)
 def serve_mobile_ui():
     return FileResponse("web/mobile.html")
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("src.api_server:app", host="0.0.0.0", port=port)
