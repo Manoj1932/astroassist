@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse,FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from src.predict_intent import predict_intent
+from predict_intent import predict_intent
 
 app = FastAPI(title="AstroAssist API")
 
