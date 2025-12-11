@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 # ========== Load label map ==========
-with open("data/label_maps.json") as f:
+with open("models/label_maps.json") as f:
     label_map = json.load(f)
 
 id_to_label = {v: k for k, v in label_map.items()}
@@ -18,7 +18,7 @@ emergency_keywords = [
 ]
 
 # ========== Load ONNX Model ==========
-onnx_model = "models/intent_model.onnx"
+onnx_model = "models/intent_classifier.onnx"
 
 session = ort.InferenceSession(onnx_model, providers=["CPUExecutionProvider"])
 
@@ -26,11 +26,10 @@ def preprocess(text):
     text = text.lower()
     tokens = text.split()
 
-    # convert tokens into IDs using simple hashing
-    # (this avoids using transformers)
+    # simple hashed tokenization
     ids = [abs(hash(t)) % 30000 for t in tokens]
 
-    # pad / crop to length 20
+    # pad/crop to length 20
     max_len = 20
     if len(ids) < max_len:
         ids += [0] * (max_len - len(ids))
@@ -40,9 +39,10 @@ def preprocess(text):
     return np.array([ids], dtype=np.int64)
 
 def predict_intent(text):
+
     t = text.lower()
 
-    # RULE-BASED HARD EMERGENCY CHECK
+    # Hard emergency rule
     for word in emergency_keywords:
         if word in t:
             return "emergency"
