@@ -1,65 +1,61 @@
-from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification
-import torch
+import onnxruntime as ort
 import json
+import numpy as np
 import os
 
-# =========================
-# ✅ Load label map FIRST
-# =========================
-LABEL_MAP_PATH = os.path.join("data", "label_maps.json")
-
-with open(LABEL_MAP_PATH, "r") as f:
+# ========== Load label map ==========
+with open("data/label_maps.json") as f:
     label_map = json.load(f)
 
 id_to_label = {v: k for k, v in label_map.items()}
-num_labels = len(label_map)
 
-# =========================
-# ✅ Use base DistilBERT safely
-# =========================
-MODEL_NAME = "distilbert-base-uncased"
+# ========== Emergency keyword rules ==========
+emergency_keywords = [
+    "fire", "smoke", "leak", "toxic", "fumes",
+    "explosion", "blast", "suffocating", "can't breathe",
+    "pressure dropping", "hull breach", "gas leak",
+    "support failing", "danger", "emergency"
+]
 
-tokenizer = DistilBertTokenizerFast.from_pretrained(MODEL_NAME)
-model = DistilBertForSequenceClassification.from_pretrained(
-    MODEL_NAME,
-    num_labels=num_labels
-)
+# ========== Load ONNX Model ==========
+onnx_model = "models/intent_model.onnx"
 
-model.eval()
+session = ort.InferenceSession(onnx_model, providers=["CPUExecutionProvider"])
 
-# =========================
-# ✅ Intent Prediction Logic
-# =========================
+def preprocess(text):
+    text = text.lower()
+    tokens = text.split()
+
+    # convert tokens into IDs using simple hashing
+    # (this avoids using transformers)
+    ids = [abs(hash(t)) % 30000 for t in tokens]
+
+    # pad / crop to length 20
+    max_len = 20
+    if len(ids) < max_len:
+        ids += [0] * (max_len - len(ids))
+    else:
+        ids = ids[:max_len]
+
+    return np.array([ids], dtype=np.int64)
+
 def predict_intent(text):
     t = text.lower()
 
-    # ✅ HARD EMERGENCY OVERRIDE
-    emergency_keywords = [
-        "fire", "smoke", "leak", "toxic", "fumes",
-        "explosion", "blast", "suffocating", "can't breathe",
-        "pressure dropping", "hull breach", "gas leak",
-        "support failing", "danger", "emergency"
-    ]
-
+    # RULE-BASED HARD EMERGENCY CHECK
     for word in emergency_keywords:
         if word in t:
             return "emergency"
 
-    # ✅ ML Prediction
-    enc = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+    X = preprocess(text)
 
-    with torch.no_grad():
-        out = model(**enc)
-        pred = torch.argmax(out.logits, dim=1).item()
+    inputs = {session.get_inputs()[0].name: X}
+    outputs = session.run(None, inputs)
+    pred = np.argmax(outputs[0], axis=1)[0]
 
-    return id_to_label.get(pred, "unknown")
+    return id_to_label[pred]
 
-
-# =========================
-# ✅ Local CLI Test Mode
-# =========================
 if __name__ == "__main__":
-    print("\n✅ Intent Predictor Ready — type a command:")
     while True:
-        cmd = input("\nEnter command: ")
-        print("Predicted Intent:", predict_intent(cmd))
+        t = input("Enter: ")
+        print("Intent:", predict_intent(t))
