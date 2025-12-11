@@ -3,8 +3,13 @@ import json
 import numpy as np
 import os
 
+BASE = os.path.dirname(__file__)
+
+label_map_path = os.path.join(BASE, "models/label_maps.json")
+onnx_model = os.path.join(BASE, "models/intent_classifier.onnx")
+
 # ========== Load label map ==========
-with open("models/label_maps.json") as f:
+with open(label_map_path) as f:
     label_map = json.load(f)
 
 id_to_label = {v: k for k, v in label_map.items()}
@@ -16,9 +21,6 @@ emergency_keywords = [
     "pressure dropping", "hull breach", "gas leak",
     "support failing", "danger", "emergency"
 ]
-
-# ========== Load ONNX Model ==========
-onnx_model = "models/intent_classifier.onnx"
 
 session = ort.InferenceSession(onnx_model, providers=["CPUExecutionProvider"])
 
