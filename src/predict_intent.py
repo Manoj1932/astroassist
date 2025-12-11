@@ -7,11 +7,25 @@ import numpy as np
 # Paths (safe on Render + local)
 # ----------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_DIR = os.path.join(BASE_DIR, "models")
+# FIX: handle Render double-src issue
+if os.path.isdir(os.path.join(BASE_DIR, "models")):
+    MODEL_DIR = os.path.join(BASE_DIR, "models")
+else:
+    MODEL_DIR = os.path.join(BASE_DIR, "..", "src", "models")
+
+MODEL_DIR = os.path.abspath(MODEL_DIR)
 
 label_map_path = os.path.join(MODEL_DIR, "label_maps.json")
 onnx_model_path = os.path.join(MODEL_DIR, "intent_classifier.onnx")
 
+print("MODEL_DIR:", MODEL_DIR)
+print("Using MODEL_DIR:", MODEL_DIR)
+print("label_maps.json exists?", os.path.exists(os.path.join(MODEL_DIR, "label_maps.json")))
+print("intent_classifier.onnx exists?", os.path.exists(os.path.join(MODEL_DIR, "intent_classifier.onnx")))
+print("label_map_path:", label_map_path)
+print("onnx_model_path:", onnx_model_path)
+print("Label map exists:", os.path.exists(label_map_path))
+print("ONNX exists:", os.path.exists(onnx_model_path))
 # ----------------------------------------------------
 # Load label map
 # ----------------------------------------------------
