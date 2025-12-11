@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: astroassist
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python src/api_server.py
+    plan: free
+
