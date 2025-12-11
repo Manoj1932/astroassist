@@ -1,16 +1,20 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse,FileResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+import numpy as np
+import random
+import asyncio
+import os
 
 from predict_intent import predict_intent
 
 app = FastAPI(title="AstroAssist API")
 
-# -------------------------------
-# ✅ CORS (So browser can call API)
-# -------------------------------
+# ----------------------------------------------------
+# CORS
+# ----------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,28 +23,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# -------------------------------
-# ✅ Serve Web Dashboard Files
-# -------------------------------
+# ----------------------------------------------------
+# Static Web Files
+# ----------------------------------------------------
 app.mount("/web", StaticFiles(directory="web"), name="web")
 
-# -------------------------------
-# ✅ Load UI at /ui
-# -------------------------------
 @app.get("/ui", response_class=HTMLResponse)
 def serve_ui():
     return FileResponse("web/index.html")
 
-# -------------------------------
-# ✅ Home Route
-# -------------------------------
+@app.get("/mobile", response_class=HTMLResponse)
+def serve_mobile_ui():
+    return FileResponse("web/mobile.html")
+
+# ----------------------------------------------------
+# Home Route
+# ----------------------------------------------------
 @app.get("/")
 def home():
     return {"message": "AstroAssist API is running ✅"}
 
-# -------------------------------
-# ✅ Dashboard Status API
-# -------------------------------
+# ----------------------------------------------------
+# Dashboard Status
+# ----------------------------------------------------
 @app.get("/dashboard")
 def dashboard():
     return {
@@ -49,23 +54,30 @@ def dashboard():
         "model": "Intent + Emergency Detection Active"
     }
 
-# -------------------------------
-# ✅ Prediction API
-# -------------------------------
+# ----------------------------------------------------
+# Prediction API FIXED ⚠️
+# Must send embeddings → ONNX expects a vector, not raw text
+# ----------------------------------------------------
 class Command(BaseModel):
     text: str
 
 @app.post("/predict")
 def predict(command: Command):
-    intent = predict_intent(command.text)
+    text = command.text
+
+    # TEMP: random embeddings (replace with real text embedding later)
+    embedding = np.random.rand(1, 512).astype(np.float32)
+
+    intent = predict_intent(embedding)
+
     return {
-        "command": command.text,
+        "command": text,
         "predicted_intent": intent
     }
-from fastapi import WebSocket
-import random
-import asyncio
 
+# ----------------------------------------------------
+# WebSocket Sensor Stream
+# ----------------------------------------------------
 @app.websocket("/ws/sensors")
 async def sensor_stream(websocket: WebSocket):
     await websocket.accept()
@@ -75,7 +87,7 @@ async def sensor_stream(websocket: WebSocket):
     power = 85.0
 
     while True:
-        # Simulated natural drift
+
         oxygen += random.uniform(-1.2, 0.6)
         pressure += random.uniform(-0.8, 0.8)
         power += random.uniform(-0.5, 0.3)
@@ -92,16 +104,13 @@ async def sensor_stream(websocket: WebSocket):
 
         await asyncio.sleep(0.5)
 
-# ✅ Mobile UI route
-@app.get("/mobile", response_class=HTMLResponse)
-def serve_mobile_ui():
-    return FileResponse("web/mobile.html")
-
+# ----------------------------------------------------
+# Run App
+# ----------------------------------------------------
 if __name__ == "__main__":
-    import uvicorn
-    import os
-
     port = int(os.environ.get("PORT", 10000))
+    import uvicorn
+
     uvicorn.run(
         "src.api_server:app",
         host="0.0.0.0",
